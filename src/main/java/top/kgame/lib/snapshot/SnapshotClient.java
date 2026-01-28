@@ -4,25 +4,24 @@ import io.netty.buffer.Unpooled;
 import io.netty.buffer.ByteBuf;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import top.kgame.lib.snapshot.core.EntitySnapshotTracker;
+import top.kgame.lib.snapshot.core.EntityObjectTracker;
 import top.kgame.lib.snapshot.tools.SnapshotTools;
 import top.kgame.lib.snapshot.tools.ReplicatedReader;
 import top.kgame.lib.snapshot.tools.ReplicatedUtil;
 
 import java.util.*;
 
-public abstract class SnapshotConnection {
-    private static final Logger logger = LogManager.getLogger(SnapshotConnection.class);
+public abstract class SnapshotClient {
+    private static final Logger logger = LogManager.getLogger(SnapshotClient.class);
 
     private final DeserializeFactory deserializeFactory;
     private final SnapshotServer snapshotServer;
     private final long uid;
 
     private int inSequence;
-    private int outSequence;
-    private int lastSnapshotAck;
+    private int lastAckSequence;
 
-    public SnapshotConnection(long uid, SnapshotServer snapshotServer) {
+    public SnapshotClient(long uid, SnapshotServer snapshotServer) {
         this.uid = uid;
         this.deserializeFactory = snapshotServer.getDeserializeFactory();
         this.snapshotServer = snapshotServer;
@@ -36,9 +35,9 @@ public abstract class SnapshotConnection {
         if (targetSequence > snapshotServer.getSequence()) {
             throw new IllegalArgumentException("targetSequence > snapshotServer.getSequence. invalid targetSequence: " + targetSequence);
         }
-        outSequence = targetSequence;
-        int baseLine = lastSnapshotAck;
-        if (targetSequence - lastSnapshotAck > SnapshotConfig.SnapshotBufferSize) {
+
+        int baseLine = lastAckSequence;
+        if (targetSequence - lastAckSequence > SnapshotConfig.SnapshotBufferSize) {
             baseLine = Integer.MIN_VALUE;
         }
         if (baseLine > 0) {
@@ -46,15 +45,15 @@ public abstract class SnapshotConnection {
         } else {
             sendFullSnapshot(targetSequence);
         }
-        if (targetSequence > lastSnapshotAck) {
-            lastSnapshotAck = targetSequence;
+        if (targetSequence > lastAckSequence) {
+            lastAckSequence = targetSequence;
         }
     }
 
     //发送全量快照
     private void sendFullSnapshot(int serverSequence) {
         List<byte[]> updateEntity = new ArrayList<>();
-        for (EntitySnapshotTracker entityInfo : snapshotServer.getAllReplicateEntity()) {
+        for (EntityObjectTracker entityInfo : snapshotServer.getAllReplicateEntity()) {
             if (entityInfo.getCreateSequence() == 0) {
                 continue;
             }
@@ -71,14 +70,14 @@ public abstract class SnapshotConnection {
             byteBuf.writeBytes(info);
         }
         byte[] updateBytes = SnapshotTools.byteBufToByteArray(byteBuf);
-        sendFullSnapshot(inSequence, outSequence, updateBytes, snapshotServer.getCreateReplicateId());
+        sendFullSnapshot(inSequence, serverSequence, updateBytes, snapshotServer.getCreateReplicateId());
     }
 
     //发送增量快照
     private void sendAdditionSnapshot(int baseLine, int serverSequence){
         List<Integer> destroyIds = new ArrayList<>();
         List<byte[]> updateEntity = new ArrayList<>();
-        for (EntitySnapshotTracker entityInfo : snapshotServer.getAllReplicateEntity()) {
+        for (EntityObjectTracker entityInfo : snapshotServer.getAllReplicateEntity()) {
             if (entityInfo.getCreateSequence() == 0) {
                 continue;
             }
@@ -106,7 +105,7 @@ public abstract class SnapshotConnection {
         }
         byte[] updateBytes = SnapshotTools.byteBufToByteArray(byteBuf);
 
-        sendAdditionSnapshot(inSequence, outSequence, updateBytes, snapshotServer.getCreateReplicateId(), destroyIds);
+        sendAdditionSnapshot(inSequence, serverSequence, updateBytes, snapshotServer.getCreateReplicateId(), destroyIds);
     }
 
     /**
@@ -128,8 +127,8 @@ public abstract class SnapshotConnection {
      */
     protected abstract void sendFullSnapshot(int inSequence, int outSequence, byte[] updateBytes, Collection<Integer> createIds);
 
-    public int getLastSnapshotAck() {
-        return lastSnapshotAck;
+    public int getLastAckSequence() {
+        return lastAckSequence;
     }
 
     /**
@@ -143,15 +142,15 @@ public abstract class SnapshotConnection {
         int size = ReplicatedUtil.readVarInt(byteBuf);
         ReplicatedReader reader = ReplicatedReader.getInstance(byteBuf);
         for (int i = 0; i < size; i++) {
-            DeserializeEntity entity = deserializeFactory.deserialize(reader);
+            DeserializeObject entity = deserializeFactory.deserialize(reader);
             if (null == entity) {
-                logger.error("ConnectionId:{} deserialize entity failed! inSequence:{} outSequence:{} dataIndex:{}.",
-                        uid, inSequence, outSequence, i);
+                logger.error("ConnectionId:{} deserialize entity failed! inSequence:{} lastAckSequence:{} dataIndex:{}.",
+                        uid, inSequence, lastAckSequence, i);
                 return;
             }
             receive(inSequence, entity);
         }
     }
 
-    protected abstract void receive(int inSequence, DeserializeEntity deserializeEntity);
+    protected abstract void receive(int inSequence, DeserializeObject deserializeObject);
 }

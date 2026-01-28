@@ -1,14 +1,13 @@
 package top.kgame.lib.test.snapshot.struct;
 
 import top.kgame.lib.snapshot.DeserializeComponent;
-import top.kgame.lib.snapshot.SerializeComponent;
+import top.kgame.lib.snapshot.SerializeAttribute;
 import top.kgame.lib.snapshot.tools.ReplicatedReader;
 import top.kgame.lib.snapshot.tools.ReplicatedWriter;
 
-import java.util.Arrays;
 import java.util.Objects;
 
-public class TestSyncStruct implements SerializeComponent, DeserializeComponent {
+public class TestSyncStruct implements SerializeAttribute, DeserializeComponent {
     private byte b;
     private char c;
     private boolean bl;

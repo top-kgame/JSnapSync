@@ -2,11 +2,6 @@ package top.kgame.lib.snapshot.tools;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
-import top.kgame.lib.snapshot.core.EntitySnapshotTracker;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class SnapshotTools {
     public static final int BYTE_BUF_SIZE_LARGE = 10240;

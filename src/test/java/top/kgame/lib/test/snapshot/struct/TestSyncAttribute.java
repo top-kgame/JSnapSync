@@ -1,7 +1,7 @@
 package top.kgame.lib.test.snapshot.struct;
 
 import top.kgame.lib.snapshot.DeserializeComponent;
-import top.kgame.lib.snapshot.SerializeComponent;
+import top.kgame.lib.snapshot.SerializeAttribute;
 import top.kgame.lib.snapshot.tools.ReplicatedReader;
 import top.kgame.lib.snapshot.tools.ReplicatedWriter;
 
@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class TestSyncComponent implements SerializeComponent, DeserializeComponent {
+public class TestSyncAttribute implements SerializeAttribute, DeserializeComponent {
     private byte b;
     private char c;
     private boolean bl;
@@ -361,7 +361,7 @@ public class TestSyncComponent implements SerializeComponent, DeserializeCompone
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        TestSyncComponent that = (TestSyncComponent) o;
+        TestSyncAttribute that = (TestSyncAttribute) o;
         return b == that.b
                 && c == that.c
                 && bl == that.bl

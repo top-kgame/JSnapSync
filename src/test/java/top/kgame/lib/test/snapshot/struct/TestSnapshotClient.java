@@ -1,12 +1,11 @@
 package top.kgame.lib.test.snapshot.struct;
 
-import top.kgame.lib.snapshot.DeserializeEntity;
-import top.kgame.lib.snapshot.DeserializeFactory;
-import top.kgame.lib.snapshot.SnapshotConnection;
+import top.kgame.lib.snapshot.DeserializeObject;
+import top.kgame.lib.snapshot.SnapshotClient;
 
 import java.util.Collection;
 
-public class TestSnapshotClient extends SnapshotConnection {
+public class TestSnapshotClient extends SnapshotClient {
     public TestSnapshotClient(long uid, TestSnapshotServer server) {
         super(uid, server);
     }
@@ -22,7 +21,7 @@ public class TestSnapshotClient extends SnapshotConnection {
     }
 
     @Override
-    protected void receive(int inSequence, DeserializeEntity deserializeEntity) {
+    protected void receive(int inSequence, DeserializeObject deserializeObject) {
 
     }
 }

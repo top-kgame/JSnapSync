@@ -5,20 +5,19 @@ import io.netty.buffer.Unpooled;
 import org.junit.jupiter.api.Test;
 import top.kgame.lib.snapshot.tools.ReplicatedReader;
 import top.kgame.lib.snapshot.tools.ReplicatedWriter;
-import top.kgame.lib.test.snapshot.struct.TestSyncComponent;
+import top.kgame.lib.test.snapshot.struct.TestSyncAttribute;
 import top.kgame.lib.test.snapshot.struct.TestSyncStruct;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.function.Supplier;
 import top.kgame.lib.snapshot.DeserializeFactory;
-import top.kgame.lib.test.snapshot.struct.TestSyncEntity;
+import top.kgame.lib.test.snapshot.struct.TestSyncObject;
 
 public class ComponentSerializeTest {
     @Test
     public void testNormalValues() {
-        TestSyncComponent encodeComponent = new TestSyncComponent();
+        TestSyncAttribute encodeComponent = new TestSyncAttribute();
         
         // 设置所有基本类型变量
         encodeComponent.setB((byte) 2);
@@ -76,7 +75,7 @@ public class ComponentSerializeTest {
         ByteBuf decodeByteBuf = Unpooled.buffer();
         decodeByteBuf.writeBytes(encodeData);
         ReplicatedReader replicatedReader = ReplicatedReader.getInstance(decodeByteBuf);
-        TestSyncComponent decodeComponent = new TestSyncComponent();
+        TestSyncAttribute decodeComponent = new TestSyncAttribute();
         decodeComponent.deserialize(replicatedReader);
 
         assert encodeComponent.equals(decodeComponent);
@@ -87,7 +86,7 @@ public class ComponentSerializeTest {
 
     @Test
     public void testMinValuesAndNulls() {
-        TestSyncComponent encodeComponent = new TestSyncComponent();
+        TestSyncAttribute encodeComponent = new TestSyncAttribute();
         
         // 设置所有基本类型变量为最小值
         encodeComponent.setB(Byte.MIN_VALUE);
@@ -131,7 +130,7 @@ public class ComponentSerializeTest {
         ByteBuf decodeByteBuf = Unpooled.buffer();
         decodeByteBuf.writeBytes(encodeData);
         ReplicatedReader replicatedReader = ReplicatedReader.getInstance(decodeByteBuf);
-        TestSyncComponent decodeComponent = new TestSyncComponent();
+        TestSyncAttribute decodeComponent = new TestSyncAttribute();
         decodeComponent.deserialize(replicatedReader);
 
         assert encodeComponent.equals(decodeComponent);
@@ -142,7 +141,7 @@ public class ComponentSerializeTest {
 
     @Test
     public void testMaxValuesAndSpecialCases() {
-        TestSyncComponent encodeComponent = new TestSyncComponent();
+        TestSyncAttribute encodeComponent = new TestSyncAttribute();
 
         // 设置所有基本类型变量为最大值和特殊值
         encodeComponent.setB(Byte.MAX_VALUE);
@@ -212,7 +211,7 @@ public class ComponentSerializeTest {
         ByteBuf decodeByteBuf = Unpooled.buffer();
         decodeByteBuf.writeBytes(encodeData);
         ReplicatedReader replicatedReader = ReplicatedReader.getInstance(decodeByteBuf);
-        TestSyncComponent decodeComponent = new TestSyncComponent();
+        TestSyncAttribute decodeComponent = new TestSyncAttribute();
         decodeComponent.deserialize(replicatedReader);
 
         assert encodeComponent.equals(decodeComponent);
@@ -220,36 +219,35 @@ public class ComponentSerializeTest {
         
         System.out.println("testMaxValuesAndSpecialCases 测试通过！");
     }
-    
-    /**
-     * 演示如何使用新的Supplier接口注册实体类型
-     */
+
     @Test
     public void testDeserializeFactoryWithSupplier() {
         DeserializeFactory factory = new DeserializeFactory();
         
         // 方式1：使用Lambda表达式
-        factory.registerEntityType(100, () -> new TestSyncEntity(0, 100));
+        factory.registerEntityType(100, () -> new TestSyncObject(0, 100));
         
         // 方式2：使用方法引用（如果有无参构造函数）
-        // factory.registerEntityType(101, TestSyncEntity::new);
+        factory.registerEntityType(101, TestSyncObject::new);
         
         // 方式3：使用类引用（需要无参构造函数）
-        // factory.registerEntityType(102, TestSyncEntity.class);
+         factory.registerEntityType(102, TestSyncObject.class);
         
         // 方式4：使用匿名内部类
-        factory.registerEntityType(103, new Supplier<TestSyncEntity>() {
+        factory.registerEntityType(103, new Supplier<TestSyncObject>() {
             @Override
-            public TestSyncEntity get() {
-                return new TestSyncEntity(0, 103);
+            public TestSyncObject get() {
+                return new TestSyncObject(0, 103);
             }
         });
         
         // 验证注册
         assert factory.isRegistered(100);
+        assert factory.isRegistered(101);
+        assert factory.isRegistered(102);
         assert factory.isRegistered(103);
         assert !factory.isRegistered(999);
-        assert factory.getRegisteredTypeCount() == 2;
+        assert factory.getRegisteredTypeCount() == 4;
         
         System.out.println("testDeserializeFactoryWithSupplier 测试通过！");
     }

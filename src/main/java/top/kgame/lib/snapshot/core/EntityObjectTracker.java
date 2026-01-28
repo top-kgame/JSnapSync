@@ -1,30 +1,29 @@
 package top.kgame.lib.snapshot.core;
 
-import io.netty.buffer.ByteBuf;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import top.kgame.lib.snapshot.SerializeComponent;
-import top.kgame.lib.snapshot.SerializeEntity;
+import top.kgame.lib.snapshot.SerializeAttribute;
+import top.kgame.lib.snapshot.SerializeObject;
 
 import java.util.ArrayList;
 
-public class EntitySnapshotTracker {
-    private static final Logger logger = LogManager.getLogger(EntitySnapshotTracker.class);
+public class EntityObjectTracker {
+    private static final Logger logger = LogManager.getLogger(EntityObjectTracker.class);
     private final int id;
     private int createSequence;
     private int updateSequence;
     private int destroySequence;
-    private final SerializeEntity entity;
+    private final SerializeObject entity;
     private final ArrayList<ComponentSerializer> serializer = new ArrayList<>();
     private final SnapshotBuffer componentSnapshotBuffer = SnapshotBuffer.generate();
-    private EntitySnapshotTracker(SerializeEntity entity) {
+    private EntityObjectTracker(SerializeObject entity) {
         this.id = entity.getGuid();
         this.entity = entity;
     }
 
-    public static EntitySnapshotTracker generate(SerializeEntity entity) {
-        EntitySnapshotTracker instance = new EntitySnapshotTracker(entity);
-        for (SerializeComponent componentType : entity.getComponents()) {
+    public static EntityObjectTracker generate(SerializeObject entity) {
+        EntityObjectTracker instance = new EntityObjectTracker(entity);
+        for (SerializeAttribute componentType : entity.getAttributes()) {
             ComponentSerializer serializer = ComponentSerializer.generate(entity, componentType);
             instance.addSerializer(serializer);
         }
@@ -121,7 +120,7 @@ public class EntitySnapshotTracker {
         return newSnapshot.generateAdditionData(preSnapshot);
     }
 
-    public SerializeEntity getEntity() {
+    public SerializeObject getEntity() {
         return entity;
     }
 }

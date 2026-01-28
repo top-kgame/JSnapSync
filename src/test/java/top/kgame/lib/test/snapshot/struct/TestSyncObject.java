@@ -1,8 +1,8 @@
 package top.kgame.lib.test.snapshot.struct;
 
-import top.kgame.lib.snapshot.DeserializeEntity;
-import top.kgame.lib.snapshot.SerializeComponent;
-import top.kgame.lib.snapshot.SerializeEntity;
+import top.kgame.lib.snapshot.DeserializeObject;
+import top.kgame.lib.snapshot.SerializeAttribute;
+import top.kgame.lib.snapshot.SerializeObject;
 import top.kgame.lib.snapshot.tools.ReplicatedReader;
 
 
@@ -10,14 +10,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class TestSyncEntity implements SerializeEntity, DeserializeEntity {
-    private final List<SerializeComponent> components = new ArrayList<>();
+public class TestSyncObject implements SerializeObject, DeserializeObject {
+    private final List<SerializeAttribute> components = new ArrayList<>();
     private int guid;
     private int type;
-    public TestSyncEntity(int guid, int type) {
+    public TestSyncObject(int guid, int type) {
         this.guid = guid;
         this.type = type;
     }
+
+    public TestSyncObject() {
+
+    }
+
     @Override
     public void deserialize(ReplicatedReader reader) {
 
@@ -29,7 +34,7 @@ public class TestSyncEntity implements SerializeEntity, DeserializeEntity {
     }
 
     @Override
-    public Collection<SerializeComponent> getComponents() {
+    public Collection<SerializeAttribute> getAttributes() {
         return components;
     }
 
@@ -48,7 +53,7 @@ public class TestSyncEntity implements SerializeEntity, DeserializeEntity {
         return type;
     }
 
-    public void addComponent(TestSyncComponent component) {
+    public void addComponent(TestSyncAttribute component) {
         components.add(component);
     }
 }

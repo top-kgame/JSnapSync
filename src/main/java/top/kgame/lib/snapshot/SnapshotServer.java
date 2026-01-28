@@ -1,37 +1,37 @@
 package top.kgame.lib.snapshot;
 
-import top.kgame.lib.snapshot.core.EntitySnapshotTracker;
+import top.kgame.lib.snapshot.core.EntityObjectTracker;
 
 import java.util.*;
 
 public abstract class SnapshotServer {
     private int serverSequence = 1;
     private final Set<Integer> createIds = new HashSet<>();
-    private final Map<Integer, EntitySnapshotTracker> replicateInfoMap = new TreeMap<>();
-    private final List<SnapshotConnection> connections = new ArrayList<>();
+    private final Map<Integer, EntityObjectTracker> replicateInfoMap = new TreeMap<>();
+    private final List<SnapshotClient> clients = new ArrayList<>();
     private final DeserializeFactory deserializeFactory = new DeserializeFactory();
 
-    private Collection<SnapshotConnection> getAllConnection() {
-        return connections;
+    private Collection<SnapshotClient> getAllClient() {
+        return clients;
     }
 
-    protected abstract SnapshotConnection generateConnection(long connectionId);
+    protected abstract SnapshotClient generateConnection(long connectionId);
 
     /**
      * 注册一个客户端连接
      */
-    public SnapshotConnection registerConnection(final long connectionId) {
-        SnapshotConnection connection = generateConnection(connectionId);
-        connections.add(connection);
+    public SnapshotClient generateClient(final long clientId) {
+        SnapshotClient connection = generateConnection(clientId);
+        clients.add(connection);
         return connection;
     }
 
     /**
-     * 注册一个需要同步的实体
+     * 注册同步对象
      * @param entity 要注册的实体对象
      */
-    public void registerEntity(SerializeEntity entity) {
-        EntitySnapshotTracker replicateInfo = EntitySnapshotTracker.generate(entity);
+    public void registerObject(SerializeObject entity) {
+        EntityObjectTracker replicateInfo = EntityObjectTracker.generate(entity);
         replicateInfo.setCreateSequence(serverSequence);
         replicateInfoMap.put(entity.getGuid(), replicateInfo);
         createIds.add(entity.getGuid());
@@ -42,8 +42,8 @@ public abstract class SnapshotServer {
      * @param replicateId 实体的复制ID
      * @return 被注销的实体对象，如果不存在则返回null
      */
-    public SerializeEntity unregisterEntity(int replicateId) {
-        EntitySnapshotTracker replicateInfo = replicateInfoMap.get(replicateId);
+    public SerializeObject unregisterEntity(int replicateId) {
+        EntityObjectTracker replicateInfo = replicateInfoMap.get(replicateId);
         if (null == replicateInfo) {
             return null;
         }
@@ -55,8 +55,8 @@ public abstract class SnapshotServer {
      * 注销指定的实体对象
      * @param entity 要注销的实体对象
      */
-    public void unregisterEntity(SerializeEntity entity) {
-        EntitySnapshotTracker replicateInfo = replicateInfoMap.get(entity.getGuid());
+    public void unregisterEntity(SerializeObject entity) {
+        EntityObjectTracker replicateInfo = replicateInfoMap.get(entity.getGuid());
         if (null == replicateInfo) {
             return;
         }
@@ -77,7 +77,7 @@ public abstract class SnapshotServer {
     private void generateSnapshot() {
         int minClientAck = calMinClientAck();
         ArrayList<Integer> needRemoveReplicateIds = new ArrayList<>();
-        for (EntitySnapshotTracker info : replicateInfoMap.values()) {
+        for (EntityObjectTracker info : replicateInfoMap.values()) {
             //移除已经所有客户端已经收到的已销毁的entity
             if (info.getDestroySequence() > 0 && minClientAck > info.getDestroySequence()) {
                 needRemoveReplicateIds.add(info.getId());
@@ -103,8 +103,8 @@ public abstract class SnapshotServer {
 
     private int calMinClientAck() {
         int minClientAck = Integer.MAX_VALUE;
-        for (SnapshotConnection connection : getAllConnection()) {
-            int ackedSequence = connection.getLastSnapshotAck();
+        for (SnapshotClient connection : getAllClient()) {
+            int ackedSequence = connection.getLastAckSequence();
             if (ackedSequence < minClientAck) {
                 minClientAck = ackedSequence;
             }
@@ -113,7 +113,7 @@ public abstract class SnapshotServer {
     }
 
     private void broadcastSnapshot() {
-        for (SnapshotConnection connection : getAllConnection()) {
+        for (SnapshotClient connection : getAllClient()) {
             connection.sendPackage(serverSequence);
         }
     }
@@ -130,7 +130,7 @@ public abstract class SnapshotServer {
      * 获取所有已注册的实体快照跟踪器
      * @return 实体快照跟踪器集合
      */
-    public Collection<EntitySnapshotTracker> getAllReplicateEntity() {
+    public Collection<EntityObjectTracker> getAllReplicateEntity() {
         return replicateInfoMap.values();
     }
 

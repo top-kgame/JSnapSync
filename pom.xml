@@ -26,7 +26,6 @@
     <scm>
         <!-- 只读访问URL -->
         <connection>scm:git:https://github.com/ZKGameDev/JSnapSync.git</connection>
-        <!-- 开发者提交访问URL（需SSH权限） -->
         <developerConnection>scm:git:git@github.com:ZKGameDev/JSnapSync.git</developerConnection>
         <!-- 浏览器访问地址 -->
         <url>https://github.com/ZKGameDev/JSnapSync</url>

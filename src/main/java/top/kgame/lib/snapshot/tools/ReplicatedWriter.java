@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.Recycler;
 import io.netty.util.Recycler.Handle;
-import top.kgame.lib.snapshot.SerializeComponent;
+import top.kgame.lib.snapshot.SerializeAttribute;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -282,7 +282,7 @@ public class ReplicatedWriter {
         }
     }
 
-    public void writeObject(SerializeComponent value) {
+    public void writeObject(SerializeAttribute value) {
         if (null == value) {
             writeBoolean(true);
             return;
@@ -291,7 +291,7 @@ public class ReplicatedWriter {
         value.serialize(this);
     }
 
-    public void writeObjList(List<? extends SerializeComponent> value) {
+    public void writeObjList(List<? extends SerializeAttribute> value) {
         if (null == value) {
             writeInteger(-1);
             return;
@@ -302,7 +302,7 @@ public class ReplicatedWriter {
         }
         int length = value.size();
         writeInteger(length);
-        for (SerializeComponent replicate : value) {
+        for (SerializeAttribute replicate : value) {
             writeObject(replicate);
         }
     }

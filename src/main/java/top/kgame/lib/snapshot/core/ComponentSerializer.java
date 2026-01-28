@@ -2,16 +2,16 @@ package top.kgame.lib.snapshot.core;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import top.kgame.lib.snapshot.SerializeComponent;
-import top.kgame.lib.snapshot.SerializeEntity;
+import top.kgame.lib.snapshot.SerializeAttribute;
+import top.kgame.lib.snapshot.SerializeObject;
 import top.kgame.lib.snapshot.tools.ReplicatedWriter;
 
 public class ComponentSerializer {
     private static final Logger logger = LogManager.getLogger(ComponentSerializer.class);
-    private final SerializeEntity serializeEntity;
-    private final SerializeComponent serializer;
-    private ComponentSerializer(SerializeEntity serializeEntity, SerializeComponent serializer) {
-        this.serializeEntity = serializeEntity;
+    private final SerializeObject serializeObject;
+    private final SerializeAttribute serializer;
+    private ComponentSerializer(SerializeObject serializeObject, SerializeAttribute serializer) {
+        this.serializeObject = serializeObject;
         this.serializer = serializer;
     }
 
@@ -23,15 +23,15 @@ public class ComponentSerializer {
         return writer.toBytes();
     }
 
-    public SerializeEntity getSerializeEntity() {
-        return serializeEntity;
+    public SerializeObject getSerializeEntity() {
+        return serializeObject;
     }
 
-    public SerializeComponent getSerializer() {
+    public SerializeAttribute getSerializer() {
         return serializer;
     }
 
-    public static ComponentSerializer generate(SerializeEntity entity, SerializeComponent component) {
+    public static ComponentSerializer generate(SerializeObject entity, SerializeAttribute component) {
         return new ComponentSerializer(entity, component);
     }
 
@@ -42,8 +42,8 @@ public class ComponentSerializer {
     @Override
     public String toString() {
         return "ReplicatedComponent{" +
-                "serializeEntityGuid=" + serializeEntity.getGuid() +
-                "serializeEntityTypeId=" + serializeEntity.getTypeId() +
+                "serializeEntityGuid=" + serializeObject.getGuid() +
+                "serializeEntityTypeId=" + serializeObject.getTypeId() +
                 ", serializerTypeId=" + serializer.getTypeId() +
                 '}';
     }

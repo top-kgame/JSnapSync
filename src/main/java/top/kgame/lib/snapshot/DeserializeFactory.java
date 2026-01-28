@@ -14,28 +14,28 @@ public class DeserializeFactory {
     /**
      * 类型ID到实体创建器的映射
      */
-    private final Map<Integer, Supplier<? extends DeserializeEntity>> entitySuppliers = new HashMap<>();
+    private final Map<Integer, Supplier<? extends DeserializeObject>> entitySuppliers = new HashMap<>();
 
     /**
      * 反序列化实体
      * @param reader 数据读取器
      * @return 反序列化后的实体对象，如果类型未注册则返回null
      */
-    public DeserializeEntity deserialize(ReplicatedReader reader) {
+    public DeserializeObject deserialize(ReplicatedReader reader) {
         int entityId = reader.readInteger();
         int entityType = reader.readInteger();
         
-        Supplier<? extends DeserializeEntity> supplier = entitySuppliers.get(entityType);
+        Supplier<? extends DeserializeObject> supplier = entitySuppliers.get(entityType);
         if (supplier == null) {
             return null;
         }
 
-        DeserializeEntity deserializeEntity = supplier.get();
-        deserializeEntity.setGuid(entityId);
-        deserializeEntity.setTypeId(entityType);
-        deserializeEntity.deserialize(reader);
+        DeserializeObject deserializeObject = supplier.get();
+        deserializeObject.setGuid(entityId);
+        deserializeObject.setTypeId(entityType);
+        deserializeObject.deserialize(reader);
         
-        return deserializeEntity;
+        return deserializeObject;
     }
 
     /**
@@ -43,7 +43,7 @@ public class DeserializeFactory {
      * @param type 实体类型ID
      * @param supplier 实体创建器
      */
-    public void registerEntityType(int type, Supplier<? extends DeserializeEntity> supplier) {
+    public void registerEntityType(int type, Supplier<? extends DeserializeObject> supplier) {
         entitySuppliers.put(type, supplier);
     }
     
@@ -53,7 +53,7 @@ public class DeserializeFactory {
      * @param entityClass 实体类
      * @param <T> 实体类型
      */
-    public <T extends DeserializeEntity> void registerEntityType(int type, Class<T> entityClass) {
+    public <T extends DeserializeObject> void registerEntityType(int type, Class<T> entityClass) {
         entitySuppliers.put(type, () -> {
             try {
                 return entityClass.getDeclaredConstructor().newInstance();
