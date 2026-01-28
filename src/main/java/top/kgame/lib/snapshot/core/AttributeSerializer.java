@@ -6,11 +6,11 @@ import top.kgame.lib.snapshot.SerializeAttribute;
 import top.kgame.lib.snapshot.SerializeObject;
 import top.kgame.lib.snapshot.tools.ReplicatedWriter;
 
-public class ComponentSerializer {
-    private static final Logger logger = LogManager.getLogger(ComponentSerializer.class);
+public class AttributeSerializer {
+    private static final Logger logger = LogManager.getLogger(AttributeSerializer.class);
     private final SerializeObject serializeObject;
     private final SerializeAttribute serializer;
-    private ComponentSerializer(SerializeObject serializeObject, SerializeAttribute serializer) {
+    private AttributeSerializer(SerializeObject serializeObject, SerializeAttribute serializer) {
         this.serializeObject = serializeObject;
         this.serializer = serializer;
     }
@@ -31,8 +31,8 @@ public class ComponentSerializer {
         return serializer;
     }
 
-    public static ComponentSerializer generate(SerializeObject entity, SerializeAttribute component) {
-        return new ComponentSerializer(entity, component);
+    public static AttributeSerializer generate(SerializeObject entity, SerializeAttribute component) {
+        return new AttributeSerializer(entity, component);
     }
 
     public Integer getTypeId() {
@@ -41,10 +41,10 @@ public class ComponentSerializer {
 
     @Override
     public String toString() {
-        return "ReplicatedComponent{" +
-                "serializeEntityGuid=" + serializeObject.getGuid() +
-                "serializeEntityTypeId=" + serializeObject.getTypeId() +
-                ", serializerTypeId=" + serializer.getTypeId() +
+        return "ReplicatedAttribute{" +
+                "serializeObjectGuid=" + serializeObject.getGuid() +
+                "serializeObjectTypeId=" + serializeObject.getTypeId() +
+                ", attributeTypeId=" + serializer.getTypeId() +
                 '}';
     }
 }

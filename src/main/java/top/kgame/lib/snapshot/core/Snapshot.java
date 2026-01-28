@@ -5,7 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import top.kgame.lib.snapshot.tools.ReplicatedUtil;
 import top.kgame.lib.snapshot.tools.ReplicatedWriter;
-import top.kgame.lib.snapshot.tools.SnapshotTools;
+import top.kgame.lib.snapshot.tools.SnapshotUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,7 @@ class Snapshot {
     private final int id;
     private final int type;
     private final byte[] head;
-    Map<Integer, byte[]> componentData = new TreeMap<>();
+    Map<Integer, byte[]> attributeData = new TreeMap<>();
 
     public Snapshot(int id, int type) {
         this.id = id;
@@ -31,10 +31,10 @@ class Snapshot {
     }
 
     byte[] getFullSnapshot() {
-        ByteBuf byteBuf = SnapshotTools.getByteBuf(SnapshotTools.BYTE_BUF_SIZE_MIDDLE);
+        ByteBuf byteBuf = SnapshotUtil.getByteBuf(SnapshotUtil.BYTE_BUF_SIZE_MIDDLE);
         byteBuf.writeBytes(head);
-        ReplicatedUtil.writeVarInt(byteBuf, componentData.size());
-        for (byte[] data : componentData.values()) {
+        ReplicatedUtil.writeVarInt(byteBuf, attributeData.size());
+        for (byte[] data : attributeData.values()) {
             if (data == null) {
                 logger.error("getFullSnapshot failed! reason: componentData values has null");
                 continue;
@@ -42,17 +42,17 @@ class Snapshot {
             ReplicatedUtil.writeVarInt(byteBuf, data.length);
             byteBuf.writeBytes(data);
         }
-        byte[] result = SnapshotTools.byteBufToByteArray(byteBuf);
-        SnapshotTools.resetByteBuf(byteBuf);
+        byte[] result = SnapshotUtil.byteBufToByteArray(byteBuf);
+        SnapshotUtil.resetByteBuf(byteBuf);
         return result;
     }
 
-    boolean registerComponentData(ComponentSerializer componentSerializer) {
-        if (componentSerializer == null) {
-            logger.error("Snapshot addComponentData failed! reason: SerializeAbleEntity[{}]'s component[TypeIndex:{}] componentSerializer is null", id, type);
+    boolean registerComponentData(AttributeSerializer attributeSerializer) {
+        if (attributeSerializer == null) {
+            logger.error("Snapshot addComponentData failed! reason: SerializeAbleEntity[{}]'s component[TypeIndex:{}] attributeSerializer is null", id, type);
             return false;
         }
-        componentData.put(componentSerializer.getTypeId(), componentSerializer.serialize());
+        attributeData.put(attributeSerializer.getTypeId(), attributeSerializer.serialize());
         return true;
     }
 
@@ -60,13 +60,13 @@ class Snapshot {
         if (other == null) {
             return false;
         }
-        byte[][] selfData = componentData.values().toArray(new byte[0][]);
-        byte[][] otherData = other.componentData.values().toArray(new byte[0][]);
+        byte[][] selfData = attributeData.values().toArray(new byte[0][]);
+        byte[][] otherData = other.attributeData.values().toArray(new byte[0][]);
         if (selfData.length != otherData.length) {
             return false;
         }
         for (int i = 0; i < selfData.length; i++) {
-            boolean match = SnapshotTools.compareByteSame(selfData[i], otherData[i]);
+            boolean match = SnapshotUtil.compareByteSame(selfData[i], otherData[i]);
             if (!match) {
                 return false;
             }
@@ -87,7 +87,7 @@ class Snapshot {
         for (int typeId : getComponentTypes()) {
             byte[] selfData = getComponentData(typeId);
             byte[] otherData = preSnapshot.getComponentData(typeId);
-            if (null == otherData || !SnapshotTools.compareByteSame(selfData, otherData)) {
+            if (null == otherData || !SnapshotUtil.compareByteSame(selfData, otherData)) {
                 additionData.add(selfData);
             }
         }
@@ -95,7 +95,7 @@ class Snapshot {
             return null;
         }
 
-        ByteBuf byteBuf = SnapshotTools.getByteBuf(SnapshotTools.BYTE_BUF_SIZE_SMALL);
+        ByteBuf byteBuf = SnapshotUtil.getByteBuf(SnapshotUtil.BYTE_BUF_SIZE_SMALL);
         byteBuf.writeBytes(head);
         ReplicatedUtil.writeVarInt(byteBuf,additionData.size());
         for (byte[] data : additionData) {
@@ -106,16 +106,16 @@ class Snapshot {
             ReplicatedUtil.writeVarInt(byteBuf, data.length);
             byteBuf.writeBytes(data);
         }
-        byte[] result = SnapshotTools.byteBufToByteArray(byteBuf);
-        SnapshotTools.resetByteBuf(byteBuf);
+        byte[] result = SnapshotUtil.byteBufToByteArray(byteBuf);
+        SnapshotUtil.resetByteBuf(byteBuf);
         return result;
     }
 
     private byte[] getComponentData(int componentTypeIndex) {
-        return componentData.get(componentTypeIndex);
+        return attributeData.get(componentTypeIndex);
     }
 
     private Set<Integer> getComponentTypes() {
-        return componentData.keySet();
+        return attributeData.keySet();
     }
 }

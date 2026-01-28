@@ -24,7 +24,7 @@ public class TestSyncObject implements SerializeObject, DeserializeObject {
     }
 
     @Override
-    public void deserialize(ReplicatedReader reader) {
+    public void deserializeAttribute(ReplicatedReader reader) {
 
     }
 

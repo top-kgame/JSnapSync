@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 import top.kgame.lib.snapshot.DeserializeFactory;
 import top.kgame.lib.test.snapshot.struct.TestSyncObject;
 
-public class ComponentSerializeTest {
+public class AttributeSerializeTest {
     @Test
     public void testNormalValues() {
         TestSyncAttribute encodeComponent = new TestSyncAttribute();

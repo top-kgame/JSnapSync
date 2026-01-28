@@ -7,30 +7,30 @@ import top.kgame.lib.snapshot.SerializeObject;
 
 import java.util.ArrayList;
 
-public class EntityObjectTracker {
-    private static final Logger logger = LogManager.getLogger(EntityObjectTracker.class);
+public class SnapshotObjectTracker {
+    private static final Logger logger = LogManager.getLogger(SnapshotObjectTracker.class);
     private final int id;
     private int createSequence;
     private int updateSequence;
     private int destroySequence;
     private final SerializeObject entity;
-    private final ArrayList<ComponentSerializer> serializer = new ArrayList<>();
+    private final ArrayList<AttributeSerializer> serializer = new ArrayList<>();
     private final SnapshotBuffer componentSnapshotBuffer = SnapshotBuffer.generate();
-    private EntityObjectTracker(SerializeObject entity) {
+    private SnapshotObjectTracker(SerializeObject entity) {
         this.id = entity.getGuid();
         this.entity = entity;
     }
 
-    public static EntityObjectTracker generate(SerializeObject entity) {
-        EntityObjectTracker instance = new EntityObjectTracker(entity);
+    public static SnapshotObjectTracker generate(SerializeObject entity) {
+        SnapshotObjectTracker instance = new SnapshotObjectTracker(entity);
         for (SerializeAttribute componentType : entity.getAttributes()) {
-            ComponentSerializer serializer = ComponentSerializer.generate(entity, componentType);
+            AttributeSerializer serializer = AttributeSerializer.generate(entity, componentType);
             instance.addSerializer(serializer);
         }
         return instance;
     }
 
-    private void addSerializer(ComponentSerializer serializer) {
+    private void addSerializer(AttributeSerializer serializer) {
         this.serializer.add(serializer);
     }
 
@@ -56,9 +56,9 @@ public class EntityObjectTracker {
 
     public void generateEntitySnapshot(int sequence) {
         Snapshot snapshot = new Snapshot(entity.getGuid(), entity.getTypeId());
-        for (ComponentSerializer componentSerializer : serializer) {
-            if (!snapshot.registerComponentData(componentSerializer)) {
-                logger.error("generateEntitySnapshot failed in sequence[{}]! reason: registerComponentData failed! ReplicatedComponentInfo[{}]", sequence, componentSerializer);
+        for (AttributeSerializer attributeSerializer : serializer) {
+            if (!snapshot.registerComponentData(attributeSerializer)) {
+                logger.error("generateEntitySnapshot failed in sequence[{}]! reason: registerComponentData failed! ReplicatedComponentInfo[{}]", sequence, attributeSerializer);
             }
         }
         componentSnapshotBuffer.insert(sequence, snapshot);

@@ -313,6 +313,6 @@ public class ReplicatedWriter {
     }
 
     public byte[] toBytes() {
-        return SnapshotTools.byteBufToByteArray(byteBuf);
+        return SnapshotUtil.byteBufToByteArray(byteBuf);
     }
 }

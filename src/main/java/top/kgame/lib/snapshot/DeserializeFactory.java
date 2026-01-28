@@ -33,7 +33,7 @@ public class DeserializeFactory {
         DeserializeObject deserializeObject = supplier.get();
         deserializeObject.setGuid(entityId);
         deserializeObject.setTypeId(entityType);
-        deserializeObject.deserialize(reader);
+        deserializeObject.deserializeAttribute(reader);
         
         return deserializeObject;
     }

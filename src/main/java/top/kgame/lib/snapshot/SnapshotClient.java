@@ -4,8 +4,8 @@ import io.netty.buffer.Unpooled;
 import io.netty.buffer.ByteBuf;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import top.kgame.lib.snapshot.core.EntityObjectTracker;
-import top.kgame.lib.snapshot.tools.SnapshotTools;
+import top.kgame.lib.snapshot.core.SnapshotObjectTracker;
+import top.kgame.lib.snapshot.tools.SnapshotUtil;
 import top.kgame.lib.snapshot.tools.ReplicatedReader;
 import top.kgame.lib.snapshot.tools.ReplicatedUtil;
 
@@ -53,7 +53,7 @@ public abstract class SnapshotClient {
     //发送全量快照
     private void sendFullSnapshot(int serverSequence) {
         List<byte[]> updateEntity = new ArrayList<>();
-        for (EntityObjectTracker entityInfo : snapshotServer.getAllReplicateEntity()) {
+        for (SnapshotObjectTracker entityInfo : snapshotServer.getAllReplicateEntity()) {
             if (entityInfo.getCreateSequence() == 0) {
                 continue;
             }
@@ -64,12 +64,12 @@ public abstract class SnapshotClient {
             updateEntity.add(entityInfo.getSnapshot(serverSequence));
         }
 
-        ByteBuf byteBuf = SnapshotTools.getByteBuf(SnapshotTools.BYTE_BUF_SIZE_LARGE);
+        ByteBuf byteBuf = SnapshotUtil.getByteBuf(SnapshotUtil.BYTE_BUF_SIZE_LARGE);
         ReplicatedUtil.writeVarInt(byteBuf, updateEntity.size());
         for (byte[] info : updateEntity) {
             byteBuf.writeBytes(info);
         }
-        byte[] updateBytes = SnapshotTools.byteBufToByteArray(byteBuf);
+        byte[] updateBytes = SnapshotUtil.byteBufToByteArray(byteBuf);
         sendFullSnapshot(inSequence, serverSequence, updateBytes, snapshotServer.getCreateReplicateId());
     }
 
@@ -77,7 +77,7 @@ public abstract class SnapshotClient {
     private void sendAdditionSnapshot(int baseLine, int serverSequence){
         List<Integer> destroyIds = new ArrayList<>();
         List<byte[]> updateEntity = new ArrayList<>();
-        for (EntityObjectTracker entityInfo : snapshotServer.getAllReplicateEntity()) {
+        for (SnapshotObjectTracker entityInfo : snapshotServer.getAllReplicateEntity()) {
             if (entityInfo.getCreateSequence() == 0) {
                 continue;
             }
@@ -98,12 +98,12 @@ public abstract class SnapshotClient {
             }
         }
 
-        ByteBuf byteBuf = SnapshotTools.getByteBuf(SnapshotTools.BYTE_BUF_SIZE_BIG);
+        ByteBuf byteBuf = SnapshotUtil.getByteBuf(SnapshotUtil.BYTE_BUF_SIZE_BIG);
         ReplicatedUtil.writeVarInt(byteBuf, updateEntity.size());
         for (byte[] info : updateEntity) {
             byteBuf.writeBytes(info);
         }
-        byte[] updateBytes = SnapshotTools.byteBufToByteArray(byteBuf);
+        byte[] updateBytes = SnapshotUtil.byteBufToByteArray(byteBuf);
 
         sendAdditionSnapshot(inSequence, serverSequence, updateBytes, snapshotServer.getCreateReplicateId(), destroyIds);
     }

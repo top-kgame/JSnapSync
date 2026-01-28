@@ -1,6 +1,5 @@
 package top.kgame.lib.snapshot.core;
 
-import io.netty.buffer.ByteBuf;
 import top.kgame.lib.snapshot.SnapshotConfig;
 
 import java.util.Arrays;

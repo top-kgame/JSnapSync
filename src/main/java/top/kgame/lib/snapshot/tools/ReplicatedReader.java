@@ -3,7 +3,7 @@ package top.kgame.lib.snapshot.tools;
 import io.netty.buffer.ByteBuf;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import top.kgame.lib.snapshot.DeserializeComponent;
+import top.kgame.lib.snapshot.DeserializeAttribute;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -301,7 +301,7 @@ public class ReplicatedReader {
         if (0 == length) {
             return "";
         }
-        byte[] data = SnapshotTools.byteBufToByteArray(byteBuf.readBytes(length));
+        byte[] data = SnapshotUtil.byteBufToByteArray(byteBuf.readBytes(length));
         return new String(data, StandardCharsets.UTF_8);
     }
 
@@ -335,7 +335,7 @@ public class ReplicatedReader {
         return result;
     }
 
-    public <T extends DeserializeComponent> T readObject(Class<T> tClass) {
+    public <T extends DeserializeAttribute> T readObject(Class<T> tClass) {
         boolean isNull = readBoolean();
         if (isNull) {
             return null;
@@ -357,7 +357,7 @@ public class ReplicatedReader {
         }
     }
 
-    public <T extends DeserializeComponent> List<T> readObjList(Class<T> tClass) {
+    public <T extends DeserializeAttribute> List<T> readObjList(Class<T> tClass) {
         int size = readInteger();
         if (-1 == size) {
             return null;

@@ -6,7 +6,7 @@ import top.kgame.lib.snapshot.tools.ReplicatedReader;
  * 可序列化实体，该实体可拥有多个可序列化组件
  */
 public interface DeserializeObject {
-    void deserialize(ReplicatedReader reader);
+    void deserializeAttribute(ReplicatedReader reader);
     void setGuid(int id);
     int getGuid();
     void setTypeId(int type);
