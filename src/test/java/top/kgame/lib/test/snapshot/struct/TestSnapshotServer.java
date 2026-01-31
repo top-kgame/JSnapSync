@@ -18,4 +18,14 @@ public class TestSnapshotServer extends SnapshotServer {
     protected SnapshotClient generateConnection(long connectionId) {
         return new TestSnapshotClient(connectionId, this);
     }
+
+    @Override
+    protected void onClientRemove(SnapshotClient client) {
+
+    }
+
+    @Override
+    protected void onClientAdd(SnapshotClient client) {
+
+    }
 }

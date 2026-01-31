@@ -8,22 +8,46 @@ public abstract class SnapshotServer {
     private int serverSequence = 1;
     private final Set<Integer> createIds = new HashSet<>();
     private final Map<Integer, SnapshotObjectTracker> replicateInfoMap = new TreeMap<>();
-    private final List<SnapshotClient> clients = new ArrayList<>();
+    private final Map<Long, SnapshotClient> clients = new HashMap<>();
     private final DeserializeFactory deserializeFactory = new DeserializeFactory();
 
     private Collection<SnapshotClient> getAllClient() {
-        return clients;
+        return clients.values();
     }
 
     protected abstract SnapshotClient generateConnection(long connectionId);
-
+    protected abstract void onClientRemove(SnapshotClient client);
+    protected abstract void onClientAdd(SnapshotClient client);
     /**
      * 注册一个客户端连接
      */
     public SnapshotClient generateClient(final long clientId) {
         SnapshotClient connection = generateConnection(clientId);
-        clients.add(connection);
+        clients.put(clientId, connection);
+        onClientAdd(connection);
         return connection;
+    }
+
+    /**
+     * 移除指定的客户端连接（如断线、踢出时调用）
+     * @param client 要移除的客户端连接实例
+     * @return 移除的client示例，如果移除失败返回null
+     */
+    public SnapshotClient removeClient(SnapshotClient client) {
+        return removeClient(client.getUid());
+    }
+
+    /**
+     * 根据客户端 ID 移除连接
+     * @param clientId 客户端 ID（即创建连接时传入的 connectionId）
+     * @return 被移除的客户端实例，若未找到则返回 null
+     */
+    public SnapshotClient removeClient(long clientId) {
+        SnapshotClient removedClient = clients.remove(clientId);
+        if (removedClient != null) {
+            onClientRemove(removedClient);
+        }
+        return removedClient;
     }
 
     /**
@@ -104,7 +128,7 @@ public abstract class SnapshotServer {
     private int calMinClientAck() {
         int minClientAck = Integer.MAX_VALUE;
         for (SnapshotClient connection : getAllClient()) {
-            int ackedSequence = connection.getLastAckSequence();
+            int ackedSequence = connection.getLastSendSequence();
             if (ackedSequence < minClientAck) {
                 minClientAck = ackedSequence;
             }
