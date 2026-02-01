@@ -4,18 +4,18 @@ import io.netty.buffer.ByteBuf;
 
 public class ReplicatedUtil {
     /**
-     * 将一个普通int转换为ZigZag格式的int
-     * @param n ZigZag格式的int
-     * @return 普通格式的int
+     * 将普通 int 编码为 ZigZag 格式（便于 VarInt 对小整数压缩）
+     * @param n 普通格式的 int
+     * @return ZigZag 编码后的 int
      */
     public static int encodeZigZag(int n) {
         return (n << 1) ^ (n >> 31);
     }
 
     /**
-     * 将一个ZigZag格式的int转换为普通int
-     * @param n 普通格式的int
-     * @return ZigZag格式的int
+     * 将 ZigZag 编码的 int 解码为普通 int
+     * @param n ZigZag 编码的 int
+     * @return 解码后的普通 int
      */
     public static int decodeZigZag(int n) {
         return (n >>> 1) ^ -(n & 1);

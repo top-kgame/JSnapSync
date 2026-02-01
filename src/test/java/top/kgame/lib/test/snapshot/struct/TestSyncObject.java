@@ -5,13 +5,10 @@ import top.kgame.lib.snapshot.SerializeAttribute;
 import top.kgame.lib.snapshot.SerializeObject;
 import top.kgame.lib.snapshot.tools.ReplicatedReader;
 
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 public class TestSyncObject implements SerializeObject, DeserializeObject {
-    private final List<SerializeAttribute> components = new ArrayList<>();
+    private final Map<Integer, TestSyncAttribute> attributeHashMap = new HashMap<>();
     private int guid;
     private int type;
     public TestSyncObject(int guid, int type) {
@@ -25,7 +22,13 @@ public class TestSyncObject implements SerializeObject, DeserializeObject {
 
     @Override
     public void deserializeAttribute(ReplicatedReader reader) {
-
+        int size = reader.readInteger();
+        for (int i = 0; i < size; i++) {
+            int attributeSize = reader.readInteger();
+            int attributeType = reader.readInteger();
+            TestSyncAttribute attribute = attributeHashMap.get(attributeType);
+            attribute.deserialize(reader);
+        }
     }
 
     @Override
@@ -35,7 +38,7 @@ public class TestSyncObject implements SerializeObject, DeserializeObject {
 
     @Override
     public Collection<SerializeAttribute> getAttributes() {
-        return components;
+        return new ArrayList<>(attributeHashMap.values());
     }
 
     @Override
@@ -54,6 +57,18 @@ public class TestSyncObject implements SerializeObject, DeserializeObject {
     }
 
     public void addComponent(TestSyncAttribute component) {
-        components.add(component);
+        attributeHashMap.put(component.getTypeId(), component);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        TestSyncObject that = (TestSyncObject) o;
+        return guid == that.guid && type == that.type && Objects.equals(attributeHashMap, that.attributeHashMap);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(attributeHashMap, guid, type);
     }
 }

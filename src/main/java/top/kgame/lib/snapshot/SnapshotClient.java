@@ -19,12 +19,19 @@ public abstract class SnapshotClient {
     private final long uid;
 
     private int inSequence;
-    private int lastAckSequence;
+    private int lastSendSequence;
 
     public SnapshotClient(long uid, SnapshotServer snapshotServer) {
         this.uid = uid;
         this.deserializeFactory = snapshotServer.getDeserializeFactory();
         this.snapshotServer = snapshotServer;
+    }
+
+    /**
+     * 获取客户端唯一标识（创建连接时传入的 connectionId）
+     */
+    public long getUid() {
+        return uid;
     }
 
     /**
@@ -36,8 +43,8 @@ public abstract class SnapshotClient {
             throw new IllegalArgumentException("targetSequence > snapshotServer.getSequence. invalid targetSequence: " + targetSequence);
         }
 
-        int baseLine = lastAckSequence;
-        if (targetSequence - lastAckSequence > SnapshotConfig.SnapshotBufferSize) {
+        int baseLine = lastSendSequence;
+        if (targetSequence - lastSendSequence > SnapshotConfig.SnapshotBufferSize) {
             baseLine = Integer.MIN_VALUE;
         }
         if (baseLine > 0) {
@@ -45,8 +52,8 @@ public abstract class SnapshotClient {
         } else {
             sendFullSnapshot(targetSequence);
         }
-        if (targetSequence > lastAckSequence) {
-            lastAckSequence = targetSequence;
+        if (targetSequence > lastSendSequence) {
+            lastSendSequence = targetSequence;
         }
     }
 
@@ -64,7 +71,7 @@ public abstract class SnapshotClient {
             updateEntity.add(entityInfo.getSnapshot(serverSequence));
         }
 
-        ByteBuf byteBuf = SnapshotUtil.getByteBuf(SnapshotUtil.BYTE_BUF_SIZE_LARGE);
+        ByteBuf byteBuf = SnapshotUtil.getByteBuf(SnapshotUtil.BYTE_BUF_SIZE_HUGE);
         ReplicatedUtil.writeVarInt(byteBuf, updateEntity.size());
         for (byte[] info : updateEntity) {
             byteBuf.writeBytes(info);
@@ -98,7 +105,7 @@ public abstract class SnapshotClient {
             }
         }
 
-        ByteBuf byteBuf = SnapshotUtil.getByteBuf(SnapshotUtil.BYTE_BUF_SIZE_BIG);
+        ByteBuf byteBuf = SnapshotUtil.getByteBuf(SnapshotUtil.BYTE_BUF_SIZE_LARGE);
         ReplicatedUtil.writeVarInt(byteBuf, updateEntity.size());
         for (byte[] info : updateEntity) {
             byteBuf.writeBytes(info);
@@ -127,8 +134,8 @@ public abstract class SnapshotClient {
      */
     protected abstract void sendFullSnapshot(int inSequence, int outSequence, byte[] updateBytes, Collection<Integer> createIds);
 
-    public int getLastAckSequence() {
-        return lastAckSequence;
+    public int getLastSendSequence() {
+        return lastSendSequence;
     }
 
     /**
@@ -145,7 +152,7 @@ public abstract class SnapshotClient {
             DeserializeObject entity = deserializeFactory.deserialize(reader);
             if (null == entity) {
                 logger.error("ConnectionId:{} deserialize entity failed! inSequence:{} lastAckSequence:{} dataIndex:{}.",
-                        uid, inSequence, lastAckSequence, i);
+                        uid, inSequence, lastSendSequence, i);
                 return;
             }
             receive(inSequence, entity);

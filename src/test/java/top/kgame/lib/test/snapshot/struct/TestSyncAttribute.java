@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class TestSyncAttribute implements SerializeAttribute, DeserializeAttribute {
+    private final int attributeId;
+
     private byte b;
     private char c;
     private boolean bl;
@@ -42,6 +44,10 @@ public class TestSyncAttribute implements SerializeAttribute, DeserializeAttribu
     private float[] floatArray;
     private double[] doubleArray;
     private String[] stringArray;
+
+    public TestSyncAttribute(int attributeId) {
+        this.attributeId = attributeId;
+    }
 
     @Override
     public void serialize(ReplicatedWriter writer) {
@@ -358,11 +364,16 @@ public class TestSyncAttribute implements SerializeAttribute, DeserializeAttribu
         this.stringArray = stringArray;
     }
 
+    public int getAttributeId() {
+        return attributeId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         TestSyncAttribute that = (TestSyncAttribute) o;
-        return b == that.b
+        return attributeId == that.attributeId
+                && b == that.b
                 && c == that.c
                 && bl == that.bl
                 && int16 == that.int16
@@ -395,18 +406,10 @@ public class TestSyncAttribute implements SerializeAttribute, DeserializeAttribu
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(b, c, bl, int16, int32, int64, f32, f64, ss, struct,
-                                  listObj, listBoolean, listByte, listChar, listShort, 
-                                  listInt, listLong, listFloat, listDouble, listString);
-        result = 31 * result + Arrays.hashCode(bs);
-        result = 31 * result + Arrays.hashCode(booleanArray);
-        result = 31 * result + Arrays.hashCode(charArray);
-        result = 31 * result + Arrays.hashCode(shortArray);
-        result = 31 * result + Arrays.hashCode(intArray);
-        result = 31 * result + Arrays.hashCode(longArray);
-        result = 31 * result + Arrays.hashCode(floatArray);
-        result = 31 * result + Arrays.hashCode(doubleArray);
-        result = 31 * result + Arrays.hashCode(stringArray);
-        return result;
+        return Objects.hash(attributeId, b, c, bl, int16, int32, int64, f32, f64, Arrays.hashCode(bs), ss, struct, listObj,
+                listBoolean, listByte, listChar, listShort, listInt, listLong, listFloat, listDouble, listString,
+                Arrays.hashCode(booleanArray), Arrays.hashCode(charArray), Arrays.hashCode(shortArray),
+                Arrays.hashCode(intArray), Arrays.hashCode(longArray), Arrays.hashCode(floatArray),
+                Arrays.hashCode(doubleArray), Arrays.hashCode(stringArray));
     }
 }

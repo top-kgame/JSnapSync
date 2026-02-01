@@ -85,10 +85,10 @@ class Snapshot {
         }
         List<byte[]> additionData = new ArrayList<>();
         for (int typeId : getComponentTypes()) {
-            byte[] selfData = getComponentData(typeId);
-            byte[] otherData = preSnapshot.getComponentData(typeId);
-            if (null == otherData || !SnapshotUtil.compareByteSame(selfData, otherData)) {
-                additionData.add(selfData);
+            byte[] currentData = getComponentData(typeId);
+            byte[] preData = preSnapshot.getComponentData(typeId);
+            if (null == preData || !SnapshotUtil.compareByteSame(currentData, preData)) {
+                additionData.add(currentData);
             }
         }
         if (additionData.isEmpty()) {

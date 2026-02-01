@@ -4,8 +4,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 
 public class SnapshotUtil {
-    public static final int BYTE_BUF_SIZE_LARGE = 10240;
-    public static final int BYTE_BUF_SIZE_BIG = 1024;
+    public static final int BYTE_BUF_SIZE_HUGE = 10240;
+    public static final int BYTE_BUF_SIZE_LARGE = 1024;
     public static final int BYTE_BUF_SIZE_MIDDLE = 512;
     public static final int BYTE_BUF_SIZE_SMALL = 256;
 
