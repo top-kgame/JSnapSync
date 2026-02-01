@@ -4,6 +4,15 @@ import top.kgame.lib.snapshot.core.SnapshotObjectTracker;
 
 import java.util.*;
 
+/**
+ * 快照服务端，管理房间内实体注册、快照生成与向各客户端的广播。
+ * <p>
+ * <b>线程模型</b>：单线程写、单线程读。所有对本 Server 的调用（如 {@link #registerObject(SerializeObject)}、
+ * {@link #stepSnapshot()}、{@link #generateClient(long)}、{@link #removeClient(long)} 等）必须在同一线程执行；
+ * 若存在“读”线程（如仅查询状态），则读也应在固定单线程完成，不与写并发。本框架适用于守望先锋等开房间类游戏中
+ * 的一个房间：房间逻辑通常由单线程驱动，无需内部加锁。
+ * </p>
+ */
 public abstract class SnapshotServer {
     private int serverSequence = 1;
     private final Set<Integer> createIds = new HashSet<>();

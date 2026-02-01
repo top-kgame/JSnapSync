@@ -11,6 +11,13 @@ import top.kgame.lib.snapshot.tools.ReplicatedUtil;
 
 import java.util.*;
 
+/**
+ * 快照客户端连接，代表房间内一个玩家，负责向该玩家发送全量/增量快照，并处理其 ack 与上行数据。
+ * <p>
+ * <b>线程模型</b>：单线程写、单线程读。对本 Client 的调用（如 {@link #sendPackage(int)}、{@link #deserializer(int, byte[])} 等）
+ * 必须在同一线程执行，与对应 {@link SnapshotServer} 的线程模型一致，通常由房间主循环线程统一驱动。
+ * </p>
+ */
 public abstract class SnapshotClient {
     private static final Logger logger = LogManager.getLogger(SnapshotClient.class);
 
