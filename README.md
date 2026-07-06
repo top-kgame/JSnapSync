@@ -1,72 +1,74 @@
 # JSnapSync
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://www.oracle.com/java/technologies/javase-downloads.html)
+[License](https://opensource.org/licenses/Apache-2.0)
+[Java](https://www.oracle.com/java/technologies/javase-downloads.html)
 
-JSnapSync 是一个专为游戏服务器设计的 Java 快照同步库。采用对象-属性模式，以对象和属性为粒度支持增量快照同步。
+> 📖 **中文文档**: [README.zh-CN.md](README.zh-CN.md)
 
-如果这个项目帮到了你，欢迎点个 star⭐ 支持一下～ 这会让更多人发现它 😊
+JSnapSync is a Java snapshot synchronization library designed for game servers. It uses an object-attribute model and supports incremental snapshot sync at the object and attribute level.
 
-## 🚀 核心特性
+If this project helps you, please consider giving it a star ⭐ — it helps more people discover it 😊
 
-- **对象-属性架构**：以对象（SerializeObject）与属性（SerializeAttribute）组织同步数据，支持灵活的数据结构设计
-- **增量同步**：仅同步发生变化的属性数据，大幅减少网络带宽使用
-- **高性能序列化**：使用优化的二进制序列化协议（VarInt、ByteBuf），支持多种基础类型与集合
-- **缓冲机制**：内置快照缓冲区（SnapshotBuffer），支持历史状态追溯和全量/增量快照发送
+## 🚀 Core Features
 
-## 📋 系统要求
+- **Object-attribute architecture**: Organize sync data with objects (`SerializeObject`) and attributes (`SerializeAttribute`) for flexible data structures
+- **Incremental sync**: Sync only changed attribute data to significantly reduce network bandwidth
+- **High-performance serialization**: Optimized binary protocol (VarInt, ByteBuf) supporting primitives and collections
+- **Buffering**: Built-in snapshot buffer (`SnapshotBuffer`) for historical state tracking and full/incremental snapshot delivery
 
-- Java 21 或更高版本
-- Maven 3.6 或更高版本
+## 📋 Requirements
 
-## 🏗️ 架构概览
+- Java 21 or later
+- Maven 3.6 or later
 
-JSnapSync 采用以下核心架构：
+## 🏗️ Architecture Overview
 
-#### 同步对象层次结构
+JSnapSync is built around the following core architecture:
 
-对象即参与同步的实体（如玩家、怪物、道具），属性即挂在对象上的数据块（如血量、位置、背包等）；一个对象可包含多个属性，对应接口如下：
+#### Sync Object Hierarchy
+
+Objects are entities that participate in sync (e.g. players, monsters, items). Attributes are data blocks attached to objects (e.g. health, position, inventory). One object can contain multiple attributes:
 
 ```
-同步对象 (SerializeObject / DeserializeObject)
-├── 同步属性1 (SerializeAttribute / DeserializeAttribute)
-│   ├── 字段1
-│   ├── 字段2
+Sync Object (SerializeObject / DeserializeObject)
+├── Sync Attribute 1 (SerializeAttribute / DeserializeAttribute)
+│   ├── Field 1
+│   ├── Field 2
 │   └── ...
-├── 同步属性2 (SerializeAttribute / DeserializeAttribute)
-└── 同步属性3 (SerializeAttribute / DeserializeAttribute)
+├── Sync Attribute 2 (SerializeAttribute / DeserializeAttribute)
+└── Sync Attribute 3 (SerializeAttribute / DeserializeAttribute)
 ```
 
-#### 消息结构
+#### Message Structure
 
-JSnapSync 使用二进制协议进行高效数据传输：
+JSnapSync uses a binary protocol for efficient data transfer:
 
 ```
-单帧消息: [实体数量] [实体1] [实体2] ...
-实体数据: [UID] [类型ID] [属性数量] [属性1] [属性2] ...
-属性数据: [属性字节长度] [属性ID] [字段数据...]
+Frame:     [entity count] [entity 1] [entity 2] ...
+Entity:    [UID] [type ID] [attribute count] [attr 1] [attr 2] ...
+Attribute: [attribute byte length] [attribute ID] [field data...]
 ```
 
-**特点**：
+**Characteristics**:
 
-- 紧凑的二进制格式（如整数 VarInt 编码）
-- 支持增量同步与全量快照
-- 自动处理数据类型和长度编码
+- Compact binary format (e.g. VarInt encoding for integers)
+- Supports incremental sync and full snapshots
+- Automatic handling of data types and length encoding
 
-#### 核心类
+#### Core Classes
 
-- **SnapshotServer**：快照服务端，管理对象注册、快照生成与向各客户端的广播
-- **SnapshotClient**：快照客户端连接，代表房间内一个玩家，负责全量/增量快照发送及上行数据反序列化
-- **SnapshotObjectTracker**：单个同步对象的快照跟踪器，管理该对象的历史快照与差异
-- **SnapshotBuffer**：快照缓冲区，按序列号存储历史快照
-- **AttributeSerializer**：属性序列化器，将 SerializeAttribute 序列化为字节
-- **DeserializeFactory**：反序列化工厂，根据类型 ID 创建 DeserializeObject 并驱动反序列化
+- **SnapshotServer**: Snapshot server — manages object registration, snapshot generation, and broadcast to clients
+- **SnapshotClient**: Snapshot client connection — represents one player in a room; handles full/incremental snapshot delivery and upstream deserialization
+- **SnapshotObjectTracker**: Per-object snapshot tracker — manages historical snapshots and diffs for a single sync object
+- **SnapshotBuffer**: Snapshot buffer — stores historical snapshots by sequence number
+- **AttributeSerializer**: Attribute serializer — serializes `SerializeAttribute` to bytes
+- **DeserializeFactory**: Deserialization factory — creates `DeserializeObject` instances by type ID and drives deserialization
 
-## 🔧 快速开始
+## 🔧 Quick Start
 
-#### 1. 定义同步属性
+#### 1. Define Sync Attributes
 
-实现 `SerializeAttribute` 与 `DeserializeAttribute`，使用 `ReplicatedWriter` / `ReplicatedReader` 读写字段，顺序需一致。
+Implement `SerializeAttribute` and `DeserializeAttribute`. Use `ReplicatedWriter` / `ReplicatedReader` to read and write fields in the same order.
 
 ```java
 public class PlayerAttribute implements SerializeAttribute, DeserializeAttribute {
@@ -76,7 +78,7 @@ public class PlayerAttribute implements SerializeAttribute, DeserializeAttribute
 
     @Override
     public Integer getTypeId() {
-        return 1; // 属性类型 ID
+        return 1; // attribute type ID
     }
 
     @Override
@@ -97,9 +99,9 @@ public class PlayerAttribute implements SerializeAttribute, DeserializeAttribute
 }
 ```
 
-#### 2. 定义同步对象
+#### 2. Define Sync Objects
 
-实现 `SerializeObject` 与 `DeserializeObject`：序列化侧通过 `getAttributes()` 提供属性集合；反序列化侧在 `deserializeAttribute(ReplicatedReader reader)` 中按“属性数量 + 每块长度 + 类型 ID + 数据”读取并填充各属性。
+Implement `SerializeObject` and `DeserializeObject`. On the serialization side, provide attributes via `getAttributes()`. On the deserialization side, read and populate attributes in `deserializeAttribute(ReplicatedReader reader)` following the format: attribute count + per-block length + type ID + data.
 
 ```java
 public class Player implements SerializeObject, DeserializeObject {
@@ -146,15 +148,15 @@ public class Player implements SerializeObject, DeserializeObject {
         for (int i = 0; i < size; i++) {
             int attributeSize = reader.readInteger();
             int attributeType = reader.readInteger();
-            // 根据 attributeType 找到对应属性并 deserialize(reader)
+            // find the matching attribute by attributeType and call deserialize(reader)
         }
     }
 }
 ```
 
-#### 3. 创建快照服务端
+#### 3. Create a Snapshot Server
 
-继承 `SnapshotServer`，在构造函数或初始化方法中注册实体类型与客户端生成方式；游戏循环中调用 `stepSnapshot()`。
+Extend `SnapshotServer`. Register entity types and client factory in the constructor or init method. Call `stepSnapshot()` in your game loop.
 
 ```java
 public class GameSnapshotServer extends SnapshotServer {
@@ -176,20 +178,20 @@ public class GameSnapshotServer extends SnapshotServer {
     protected void onClientAdd(SnapshotClient client) {}
 
     public void gameLoop() {
-        // 注册对象、生成/移除客户端后，每帧调用
+        // call every frame after registering objects and creating/removing clients
         stepSnapshot();
     }
 }
 ```
 
-- 注册对象：`registerObject(SerializeObject entity)`
-- 注销对象：`unregisterEntity(SerializeObject)` 或 `unregisterEntity(int replicateId)`
-- 生成客户端连接：`generateClient(long clientId)`
-- 移除客户端：`removeClient(SnapshotClient)` 或 `removeClient(long clientId)`
+- Register object: `registerObject(SerializeObject entity)`
+- Unregister object: `unregisterEntity(SerializeObject)` or `unregisterEntity(int replicateId)`
+- Create client connection: `generateClient(long clientId)`
+- Remove client: `removeClient(SnapshotClient)` or `removeClient(long clientId)`
 
-#### 4. 实现快照客户端连接
+#### 4. Implement Snapshot Client Connection
 
-继承 `SnapshotClient`，实现 `sendFullSnapshot`、`sendAdditionSnapshot` 和 `receive`。服务端每帧对每个客户端调用 `sendPackage(serverSequence)`，由库内部根据缓冲决定发全量或增量；客户端上行数据通过 `deserializer(inSequence, byteArray)` 注入，反序列化后的对象会回调 `receive(inSequence, deserializeObject)`。
+Extend `SnapshotClient` and implement `sendFullSnapshot`, `sendAdditionSnapshot`, and `receive`. The server calls `sendPackage(serverSequence)` per client each frame; the library decides full vs incremental based on the buffer. Upstream client data is injected via `deserializer(inSequence, byteArray)`; deserialized objects are delivered through `receive(inSequence, deserializeObject)`.
 
 ```java
 public class GameSnapshotClient extends SnapshotClient {
@@ -200,92 +202,92 @@ public class GameSnapshotClient extends SnapshotClient {
 
     @Override
     protected void sendFullSnapshot(int inSequence, int outSequence, byte[] updateBytes, Collection<Integer> createIds) {
-        // 将全量快照数据发送给客户端
+        // send full snapshot data to the client
     }
 
     @Override
     protected void sendAdditionSnapshot(int inSequence, int outSequence, byte[] updateBytes,
                                        Collection<Integer> createIds, Collection<Integer> destroyIds) {
-        // 将增量快照数据发送给客户端
+        // send incremental snapshot data to the client
     }
 
     @Override
     protected void receive(int inSequence, DeserializeObject deserializeObject) {
-        // 处理客户端上行反序列化后的对象
+        // handle upstream deserialized objects from the client
     }
 }
 ```
 
-- 服务端驱动发送：在 `stepSnapshot()` 之后对每个客户端调用 `client.sendPackage(server.getSequence())`（或等价序列号）。
-- 客户端上行：收到客户端包时调用 `client.deserializer(inSequence, byteArray)`。
+- Server-driven send: after `stepSnapshot()`, call `client.sendPackage(server.getSequence())` (or equivalent sequence) for each client.
+- Client upstream: on receiving a client packet, call `client.deserializer(inSequence, byteArray)`.
 
-## 📊 支持的数据类型
+## 📊 Supported Data Types
 
-#### 基础类型
+#### Primitives
 
 - `byte`, `char`, `boolean`, `short`, `int`, `long`, `float`, `double`
 - `String`, `byte[]`
 
-#### 集合与数组
+#### Collections and Arrays
 
-- `List<T>`：`writeBooleanList` / `readBooleanList`、`writeIntList` / `readIntList`、`writeStringList` / `readStringList` 等
-- 基础类型数组：`writeIntArray` / `readIntArray`、`writeStringArray` / `readStringArray` 等
-- 自定义对象列表：`writeObjList(List<? extends SerializeAttribute>)` / `readObjList(Class<T extends DeserializeAttribute>)`
+- `List<T>`: `writeBooleanList` / `readBooleanList`, `writeIntList` / `readIntList`, `writeStringList` / `readStringList`, etc.
+- Primitive arrays: `writeIntArray` / `readIntArray`, `writeStringArray` / `readStringArray`, etc.
+- Custom object lists: `writeObjList(List<? extends SerializeAttribute>)` / `readObjList(Class<T extends DeserializeAttribute>)`
 
-#### 自定义结构体
+#### Custom Structs
 
-- 实现 `SerializeAttribute` 与 `DeserializeAttribute` 的类，可作为字段或列表元素，通过 `writeObject` / `readObject(Class)`、`writeObjList` / `readObjList(Class)` 序列化。
+- Classes implementing `SerializeAttribute` and `DeserializeAttribute` can be used as fields or list elements via `writeObject` / `readObject(Class)`, `writeObjList` / `readObjList(Class)`.
 
-## ⚙️ 高级特性
+## ⚙️ Advanced Features
 
-#### 增量快照
+#### Incremental Snapshots
 
-服务端通过 `SnapshotObjectTracker` 比较相邻序列号快照，仅在有变化时下发该对象的增量数据；若客户端落后超过 `SnapshotConfig.SnapshotBufferSize`（默认 64），则自动切换为全量快照。
+The server uses `SnapshotObjectTracker` to compare snapshots at adjacent sequence numbers and sends incremental data only when an object changes. If a client falls behind by more than `SnapshotConfig.SnapshotBufferSize` (default 64), a full snapshot is sent automatically.
 
-#### 快照缓冲
+#### Snapshot Buffering
 
-- 服务端为每个已注册对象维护 `SnapshotBuffer`，用于历史快照与差异计算。
-- 缓冲区大小由 `SnapshotConfig.SnapshotBufferSize` 控制。
+- The server maintains a `SnapshotBuffer` per registered object for historical snapshots and diff computation.
+- Buffer size is controlled by `SnapshotConfig.SnapshotBufferSize`.
 
-#### 实体类型注册
+#### Entity Type Registration
 
-- **Supplier**：`getDeserializeFactory().registerEntityType(typeId, () -> new Player(0, typeId));`
-- **类引用**（需无参构造）：`getDeserializeFactory().registerEntityType(typeId, Player.class);`
+- **Supplier**: `getDeserializeFactory().registerEntityType(typeId, () -> new Player(0, typeId));`
+- **Class reference** (requires no-arg constructor): `getDeserializeFactory().registerEntityType(typeId, Player.class);`
 
-可选：为实体类标注 `@SnapshotDeserializer(typeId)`，使用 `ClassUtils.getClassByAnnotation(packageName, SnapshotDeserializer.class)` 扫描后批量注册。
+Optional: annotate entity classes with `@SnapshotDeserializer(typeId)` and batch-register via `ClassUtils.getClassByAnnotation(packageName, SnapshotDeserializer.class)`.
 
-## 🧪 测试
+## 🧪 Testing
 
-运行测试套件：
+Run the test suite:
 
 ```bash
 mvn test
 ```
 
-测试包含属性序列化/反序列化、边界值、增量快照等。
+Tests cover attribute serialization/deserialization, boundary values, incremental snapshots, and more.
 
-## 📝 注意事项
+## 📝 Notes
 
-1. **对象与属性固定性**：对象注册后，其 `getAttributes()` 返回的集合不应在运行期增删；反序列化侧需能根据类型 ID 找到对应属性实例并填充。
-2. **类型 ID 唯一性**：同一上下文中对象类型 ID、属性类型 ID 需唯一。
-3. **序列化顺序**：`serialize` 与 `deserialize` 的字段顺序必须严格一致。
-4. **线程模型**：SnapshotServer 与 SnapshotClient 均为**单线程写、单线程读**。对同一 Server/Client 的调用（如 `registerObject`、`stepSnapshot`、`generateClient`、`sendPackage`、`deserializer` 等）应在同一线程执行，适用于守望先锋等开房间类游戏中**一个房间**由单线程主循环驱动的场景，无需框架内部加锁。
+1. **Fixed object and attribute layout**: After registration, the collection returned by `getAttributes()` should not be modified at runtime. The deserialization side must resolve attribute instances by type ID and populate them.
+2. **Unique type IDs**: Object type IDs and attribute type IDs must be unique within the same context.
+3. **Serialization order**: Field order in `serialize` and `deserialize` must match exactly.
+4. **Threading model**: `SnapshotServer` and `SnapshotClient` are **single-writer, single-reader**. Calls on the same Server/Client (e.g. `registerObject`, `stepSnapshot`, `generateClient`, `sendPackage`, `deserializer`) should run on the same thread — suitable for room-based games (e.g. Overwatch-style) where **one room** is driven by a single-threaded main loop, with no internal locking required.
 
-## 📄 许可证
+## 📄 License
 
-本项目采用 Apache License 2.0 许可证。详细信息请查看 [LICENSE](LICENSE) 文件。
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
 
-## 📋 后续开发计划
+## 📋 Roadmap
 
-- 二进制快照反序列化可视化工具（进行中）
-- 支持回放的快照数据存储模块（未开始）
+- Binary snapshot deserialization visualizer (in progress)
+- Snapshot storage module with replay support (not started)
 
-## 🔗 相关链接
+## 🔗 Links
 
-- [项目主页](https://github.com/ZKGameDev/JSnapSync)
-- [问题反馈](https://github.com/ZKGameDev/JSnapSync/issues)
-- [KGame 生态系统](https://github.com/ZKGameDev)
+- [Project home](https://github.com/ZKGameDev/JSnapSync)
+- [Issues](https://github.com/ZKGameDev/JSnapSync/issues)
+- [KGame ecosystem](https://github.com/ZKGameDev)
 
 ---
 
-*JSnapSync - 让游戏服务器状态同步变得简单高效* 🎮
+*JSnapSync — simple and efficient game server state synchronization* 🎮
